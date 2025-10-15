@@ -28,6 +28,7 @@ A production-grade desktop reporter application for Orangebeard built with **Ele
 - ✅ **Notes & Logs** - Markdown-friendly notes converted to logs
 - ✅ **Keyboard Shortcuts** - P/F/S for Pass/Fail/Skip, Enter for rename, Del for delete
 - ✅ **Multi-Platform** - Windows (x64/arm64), macOS (Intel/Apple Silicon), Linux (x64)
+- ✅ **Drag-and-Drop Reordering** - Reorder suites, tests, and steps within parents
 
 ## Project Status
 
@@ -41,7 +42,7 @@ A production-grade desktop reporter application for Orangebeard built with **Ele
 - Example test set with nested structures
 - Basic React app with custom titlebar
 
-### 🚧 In Progress (See PROJECT_STATUS.md)
+### ✅ Completed Implementation
 
 - Zustand state management (configSlice, testSetSlice, runSlice)
 - Orangebeard client service adapter
@@ -50,7 +51,9 @@ A production-grade desktop reporter application for Orangebeard built with **Ele
 - Settings and Runner routes
 - shadcn/ui component integration
 - Utilities (files, clipboard, ID generation)
-- Unit and E2E tests
+- Comprehensive unit and E2E tests
+- Drag-and-drop reordering functionality
+- CI/CD workflows (GitHub Actions)
 
 ## Getting Started
 
@@ -88,9 +91,9 @@ npm run test:e2e
 npm run build
 
 # Package for specific platforms
-npm run pack:win      # Windows (ZIP)
+npm run pack:win      # Windows (MSI)
 npm run pack:mac      # macOS (DMG)
-npm run pack:linux    # Linux (DEB + AppImage)
+npm run pack:linux    # Linux (DEB + ZIP)
 ```
 
 ## Configuration
@@ -197,16 +200,25 @@ See `examples/sample.obset.json` for a complete example.
 - ✅ Content Security Policy in HTML
 - ✅ Token stored only in app config, not in test files
 
+## CI/CD
+
+The project includes GitHub Actions workflows:
+
+- **CI** (`ci.yml`) - Runs tests on every PR and push to ensure code quality (Linux only for stability)
+- **Release** (`release.yml`) - Automated releases with version bumping and multi-platform builds:
+  - Windows: MSI installer
+  - macOS: DMG (Intel + Apple Silicon universal binary)
+  - Linux: DEB package + ZIP archive
+
 ## Contributing
 
-This is a production-grade foundation. To complete the implementation:
+The core implementation is complete. To contribute:
 
-1. Review `PROJECT_STATUS.md` for remaining tasks
-2. Implement state management (Zustand slices)
-3. Create Orangebeard client adapter
-4. Build RunCoordinator orchestration
-5. Add React components and routes
-6. Write tests
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Run `npm run lint` and `npm run typecheck`
+5. Submit a pull request
 
 ## License
 

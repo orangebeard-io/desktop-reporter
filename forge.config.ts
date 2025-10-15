@@ -3,7 +3,7 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerDMG } from '@electron-forge/maker-dmg';
-import { MakerSquirrel } from '@electron-forge/maker-squirrel';
+import { MakerWix } from '@electron-forge/maker-wix';
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -15,8 +15,10 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerZIP({}, ['linux']),
-    new MakerSquirrel({
-      name: 'orangebeard_desktop_reporter',
+    new MakerWix({
+      name: 'Orangebeard Desktop Reporter',
+      manufacturer: 'Orangebeard',
+      icon: './assets/logo.ico',
     }),
     new MakerDMG({
       name: 'Orangebeard',
