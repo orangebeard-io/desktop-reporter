@@ -16,7 +16,6 @@ const config: ForgeConfig = {
     new MakerZIP({}, ['win32', 'linux']),
     new MakerDMG({
       name: 'Orangebeard Desktop Reporter',
-      icon: './assets/logo.icns',
     }),
     new MakerDeb({
       options: {
