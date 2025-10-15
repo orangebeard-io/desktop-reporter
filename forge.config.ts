@@ -3,17 +3,21 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerDMG } from '@electron-forge/maker-dmg';
+import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'Orangebeard Desktop Reporter',
+    name: 'Orangebeard Reporter',
     executableName: 'orangebeard-desktop-reporter',
     icon: './assets/logo',
     asar: true,
   },
   rebuildConfig: {},
   makers: [
-    new MakerZIP({}, ['win32', 'linux']),
+    new MakerZIP({}, ['linux']),
+    new MakerSquirrel({
+      name: 'orangebeard_desktop_reporter',
+    }),
     new MakerDMG({
       name: 'Orangebeard Reporter',
     }),
