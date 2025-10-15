@@ -1,7 +1,7 @@
 {
   "name": "orangebeard-desktop-reporter",
   "productName": "Orangebeard Desktop Reporter",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A desktop reporter application for Orangebeard built with Electron, React, and TypeScript",
   "main": ".vite/build/main.js",
   "author": "Orangebeard",
