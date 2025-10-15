@@ -7,8 +7,15 @@ let window: Page;
 
 test.beforeAll(async () => {
   // Launch Electron app with NODE_ENV=test to prevent DevTools from opening
+  const launchArgs = ['.'];
+  
+  // On Linux in CI, disable sandbox to avoid permission issues
+  if (process.platform === 'linux' && process.env.CI) {
+    launchArgs.push('--no-sandbox');
+  }
+  
   electronApp = await electron.launch({
-    args: ['.'],
+    args: launchArgs,
     cwd: path.join(__dirname, '../..'),
     env: {
       ...process.env,
@@ -24,7 +31,9 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await electronApp.close();
+  if (electronApp) {
+    await electronApp.close();
+  }
 });
 
 test.describe('Drag and Drop - Reordering', () => {
