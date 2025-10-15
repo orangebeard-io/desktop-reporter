@@ -127,9 +127,9 @@ jobs:
         run: |
           mkdir -p release-artifacts
           
-          # Find all zip, dmg, deb, rpm, AppImage, exe, nupkg files in out/make
+          # Find all zip, dmg, deb, rpm, AppImage, msi, exe, nupkg files in out/make
           if [ -d "out/make" ]; then
-            find out/make -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*Setup.exe" -o -name "*.nupkg" \) -exec cp {} release-artifacts/ \;
+            find out/make -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.msi" -o -name "*Setup.exe" -o -name "*.nupkg" \) -exec cp {} release-artifacts/ \;
           fi
           
           # List what we found
@@ -174,7 +174,7 @@ jobs:
         id: prepare_assets
         run: |
           mkdir -p release-files
-          find all-artifacts -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*Setup.exe" -o -name "*.nupkg" \) -exec cp {} release-files/ \;
+          find all-artifacts -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.msi" -o -name "*Setup.exe" -o -name "*.nupkg" \) -exec cp {} release-files/ \;
           ls -la release-files/
           
           # Generate release notes
@@ -197,15 +197,15 @@ jobs:
           echo "## Downloads" >> release-notes.md
           echo "" >> release-notes.md
           echo "### Windows" >> release-notes.md
-          echo "- Download the \`*Setup.exe\` file for Windows installer" >> release-notes.md
-          echo "- Download the \`.zip\` file for Windows portable" >> release-notes.md
+          echo "- Download the \`.msi\` file for Windows installer" >> release-notes.md
           echo "" >> release-notes.md
           echo "### macOS" >> release-notes.md
-          echo "- Download the \`.dmg\` file for macOS (Intel and Apple Silicon)" >> release-notes.md
+          echo "- Download the \`.zip\` file for macOS (Intel and Apple Silicon)" >> release-notes.md
+          echo "- Extract and drag the app to your Applications folder" >> release-notes.md
           echo "" >> release-notes.md
           echo "### Linux" >> release-notes.md
           echo "- Download the \`.deb\` file for Debian/Ubuntu" >> release-notes.md
-          echo "- Download the \`.AppImage\` file for other distributions" >> release-notes.md
+          echo "- Download the \`.zip\` file for portable version" >> release-notes.md
           
           cat release-notes.md
 

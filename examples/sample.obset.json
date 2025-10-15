@@ -108,11 +108,13 @@
                   },
                   {
                     "id": "step-5",
-                    "name": "Set new password"
+                    "name": "Set new password",
+                    "notes": "note"
                   },
                   {
                     "id": "step-6",
-                    "name": "Verify login with new password"
+                    "name": "Verify login with new password",
+                    "notes": ""
                   }
                 ],
                 "notes": "Verify email delivery and link validity"
