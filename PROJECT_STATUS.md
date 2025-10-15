@@ -115,34 +115,28 @@ Production-grade Electron + React + TypeScript desktop application for Orangebea
   - Full RunCoordinator integration
 
 ### Example Data (examples/)
-- **sample.obset.json** - Demonstrative test set:
+- ✅ **sample.obset.json** - Demonstrative test set:
   - 2-3 nested suites
   - Tests with and without steps
   - Nested steps (at least 2 levels)
   - Notes on tests and steps
 
 ### Testing (tests/)
-- **vitest.config.ts** - Vitest configuration
-- **tests/unit/runCoordinator.test.ts** - Unit test for sequencing logic:
+- ✅ **vitest.config.ts** - Vitest configuration
+- ✅ **tests/unit/runCoordinator.test.ts** - Unit test for sequencing logic:
   - Mock Orangebeard client
   - Test: first status creates run
   - Test: marking step ensures test started
   - Test: finish run skips remaining tests
-- **tests/e2e/smoke.spec.ts** - Playwright smoke test:
+- ✅ **tests/e2e/smoke.spec.ts** - Playwright smoke test:
   - Launch app
   - Create new test set
   - Start run, assert started
   - Finish run → assert remaining skipped
 
-### Icon Generation (scripts/)
-- **generate-icons.ts** - Convert `assets/logo.svg` to:
-  - `logo.ico` (Windows)
-  - `logo.icns` (macOS)
-  - `logo.png` (Linux, multiple sizes)
-  - Use `sharp` library
 
 ## 📝 Schema Export
-Create `src/schema/obtestset.schema.json` by running a script that exports the Zod schema as JSON Schema (already imported in schemas.ts).
+✅ Create `src/schema/obtestset.schema.json` by running a script that exports the Zod schema as JSON Schema (already imported in schemas.ts).
 
 ## 🎯 Development Commands
 
@@ -195,7 +189,6 @@ npm run pack:linux
 ### Data Flow
 1. User loads `.obset.json` → validates with Zod → loads into testSetSlice
 2. User marks status (P/F/S) → RunCoordinator orchestrates:
-   - Lazy run creation
    - Suite path resolution
    - Test start
    - Item (test/step) reporting with notes/attachments
@@ -208,7 +201,7 @@ npm run pack:linux
 - Run starts on first status anywhere
 - Tests auto-finish when all steps have terminal status
 - Attachments ≤ 32MB uploaded immediately
-- Notes become log entries
+- Notes become log entries when a satus is set
 - Edits don't back-sync to already-reported items
 
 ## 📦 Dependencies Highlights
@@ -225,4 +218,4 @@ npm run pack:linux
 ---
 
 **Status**: ✅ Core implementation complete! Application is functional.
-**Remaining work**: Testing, icon generation, additional UI polish (attachments, keyboard shortcuts).
+**Remaining work**: Testing,additional UI polish (attachments, keyboard shortcuts).
