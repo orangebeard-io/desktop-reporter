@@ -7,8 +7,15 @@ let window: Page;
 
 test.beforeAll(async () => {
   // Launch Electron app with NODE_ENV=test to prevent DevTools from opening
+  const launchArgs = ['.'];
+  
+  // On Linux in CI, disable sandbox to avoid permission issues
+  if (process.platform === 'linux' && process.env.CI) {
+    launchArgs.push('--no-sandbox');
+  }
+  
   electronApp = await electron.launch({
-    args: ['.'],
+    args: launchArgs,
     cwd: path.join(__dirname, '../..'),
     env: {
       ...process.env,
@@ -24,7 +31,9 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await electronApp.close();
+  if (electronApp) {
+    await electronApp.close();
+  }
 });
 
 test.describe('Drag and Drop - Reordering', () => {
@@ -85,15 +94,17 @@ test.describe('Drag and Drop - Reordering', () => {
     if (test1Box && test3Box) {
       // Start drag from Test 1
       await window.mouse.move(test1Box.x + test1Box.width / 2, test1Box.y + test1Box.height / 2);
+      await window.waitForTimeout(100);
       await window.mouse.down();
+      await window.waitForTimeout(300); // Wait after mouse down
       
       // Move to bottom half of Test 3 (to drop after it)
-      await window.mouse.move(test3Box.x + test3Box.width / 2, test3Box.y + test3Box.height - 5, { steps: 10 });
-      await window.waitForTimeout(200); // Wait for drop indicator
+      await window.mouse.move(test3Box.x + test3Box.width / 2, test3Box.y + test3Box.height - 5, { steps: 20 });
+      await window.waitForTimeout(500); // Longer wait for drop indicator
       
       // Drop
       await window.mouse.up();
-      await window.waitForTimeout(300); // Wait for state update
+      await window.waitForTimeout(500); // Longer wait for state update
     }
 
     // Verify new order by checking positions
@@ -153,15 +164,17 @@ test.describe('Drag and Drop - Reordering', () => {
     if (step1Box && step3Box) {
       // Start drag from Step 1
       await window.mouse.move(step1Box.x + step1Box.width / 2, step1Box.y + step1Box.height / 2);
+      await window.waitForTimeout(100);
       await window.mouse.down();
+      await window.waitForTimeout(300); // Wait after mouse down
       
       // Move to bottom half of Step 3 (to drop after it)
-      await window.mouse.move(step3Box.x + step3Box.width / 2, step3Box.y + step3Box.height - 5, { steps: 10 });
-      await window.waitForTimeout(200);
+      await window.mouse.move(step3Box.x + step3Box.width / 2, step3Box.y + step3Box.height - 5, { steps: 20 });
+      await window.waitForTimeout(500); // Longer wait for drop indicator
       
       // Drop
       await window.mouse.up();
-      await window.waitForTimeout(300);
+      await window.waitForTimeout(500); // Longer wait for state update
     }
 
     // Verify new order
