@@ -100,6 +100,6 @@
     }
   },
   "config": {
-    "forge": "forge.config.cjs"
+    "forge": "forge.config.ts"
   }
 }
