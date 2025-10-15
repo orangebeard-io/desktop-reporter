@@ -15,7 +15,7 @@ const config: ForgeConfig = {
   makers: [
     new MakerZIP({}, ['win32', 'linux']),
     new MakerDMG({
-      name: 'Orangebeard Desktop Reporter',
+      name: 'Orangebeard Reporter',
     }),
     new MakerDeb({
       options: {
