@@ -18,6 +18,11 @@ const config: ForgeConfig = {
       name: 'Orangebeard Desktop Reporter',
       manufacturer: 'Orangebeard',
       icon: './assets/logo.ico',
+      exe: 'orangebeard-desktop-reporter.exe',
+      description: 'Desktop reporter application for Orangebeard',
+      ui: {
+        chooseDirectory: true,
+      },
     }),
     new MakerDeb({
       options: {
