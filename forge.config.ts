@@ -19,7 +19,7 @@ const config: ForgeConfig = {
       name: 'orangebeard_desktop_reporter',
     }),
     new MakerDMG({
-      name: 'Orangebeard Reporter',
+      name: 'Orangebeard',
     }),
     new MakerDeb({
       options: {
