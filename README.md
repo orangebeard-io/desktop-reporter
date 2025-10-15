@@ -92,7 +92,7 @@ npm run build
 
 # Package for specific platforms
 npm run pack:win      # Windows (MSI)
-npm run pack:mac      # macOS (DMG)
+npm run pack:mac      # macOS (ZIP)
 npm run pack:linux    # Linux (DEB + ZIP)
 ```
 
@@ -207,7 +207,7 @@ The project includes GitHub Actions workflows:
 - **CI** (`ci.yml`) - Runs tests on every PR and push to ensure code quality (Linux only for stability)
 - **Release** (`release.yml`) - Automated releases with version bumping and multi-platform builds:
   - Windows: MSI installer
-  - macOS: DMG (Intel + Apple Silicon universal binary)
+  - macOS: ZIP archive (Intel + Apple Silicon universal binary)
   - Linux: DEB package + ZIP archive
 
 ## Contributing

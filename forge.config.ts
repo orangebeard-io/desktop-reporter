@@ -2,7 +2,6 @@ import type { ForgeConfig } from '@electron-forge/shared-types';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
-import { MakerDMG } from '@electron-forge/maker-dmg';
 import { MakerWix } from '@electron-forge/maker-wix';
 
 const config: ForgeConfig = {
@@ -14,14 +13,11 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerZIP({}, ['linux']),
+    new MakerZIP({}, ['linux', 'darwin']),
     new MakerWix({
       name: 'Orangebeard Desktop Reporter',
       manufacturer: 'Orangebeard',
       icon: './assets/logo.ico',
-    }),
-    new MakerDMG({
-      name: 'Orangebeard',
     }),
     new MakerDeb({
       options: {
