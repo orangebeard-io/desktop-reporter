@@ -6,7 +6,7 @@ import { MakerDMG } from '@electron-forge/maker-dmg';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'Orangebeard Desktop Reporter',
+    name: 'Orangebeard Reporter',
     executableName: 'orangebeard-desktop-reporter',
     icon: './assets/logo',
     asar: true,
