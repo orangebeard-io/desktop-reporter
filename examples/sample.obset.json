@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "1.0.0",
+  "metadata": {
+    "organization": "tom-test",
+    "project": "example-project",
+    "testSetName": "Demo Test Set - UI & API Tests",
+    "description": "Comprehensive example showing nested suites, tests with/without steps, and nested steps (2+ levels)"
+  },
+  "structure": {
+    "suites": [
+      {
+        "id": "suite-1",
+        "name": "Authentication Tests",
+        "suites": [
+          {
+            "id": "suite-1-1",
+            "name": "Login Flow",
+            "tests": [
+              {
+                "id": "test-1-1-1",
+                "name": "Successful login with valid credentials",
+                "steps": [
+                  {
+                    "id": "step-1",
+                    "name": "Navigate to login page",
+                    "notes": ""
+                  },
+                  {
+                    "id": "step-2",
+                    "name": "Enter username and password",
+                    "notes": "Use test credentials from env"
+                  },
+                  {
+                    "id": "step-3",
+                    "name": "Click login button",
+                    "notes": ""
+                  },
+                  {
+                    "id": "step-4",
+                    "name": "Verify redirect to dashboard",
+                    "notes": "We got a blank screen"
+                  }
+                ],
+                "notes": ""
+              },
+              {
+                "id": "test-1-1-2",
+                "name": "Failed login with invalid credentials",
+                "steps": [
+                  {
+                    "id": "step-1",
+                    "name": "Navigate to login page"
+                  },
+                  {
+                    "id": "step-2",
+                    "name": "Enter invalid credentials"
+                  },
+                  {
+                    "id": "step-3",
+                    "name": "Click login button"
+                  },
+                  {
+                    "id": "step-4",
+                    "name": "Verify error message is displayed"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "suite-1-2",
+            "name": "Password Reset",
+            "tests": [
+              {
+                "id": "test-1-2-1",
+                "name": "Request password reset email",
+                "steps": [
+                  {
+                    "id": "step-1",
+                    "name": "Click 'Forgot Password' link"
+                  },
+                  {
+                    "id": "step-2",
+                    "name": "Enter email address"
+                  },
+                  {
+                    "id": "step-3",
+                    "name": "Submit form"
+                  },
+                  {
+                    "id": "step-4",
+                    "name": "Check email inbox",
+                    "steps": [
+                      {
+                        "id": "step-4-1",
+                        "name": "Open email client"
+                      },
+                      {
+                        "id": "step-4-2",
+                        "name": "Find reset email",
+                        "notes": "Should arrive within 5 minutes"
+                      },
+                      {
+                        "id": "step-4-3",
+                        "name": "Click reset link"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "step-5",
+                    "name": "Set new password"
+                  },
+                  {
+                    "id": "step-6",
+                    "name": "Verify login with new password"
+                  }
+                ],
+                "notes": "Verify email delivery and link validity"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "suite-2",
+        "name": "API Tests",
+        "tests": [
+          {
+            "id": "test-2-1",
+            "name": "GET /users endpoint returns 200",
+            "steps": [
+              {
+                "id": "step-1",
+                "name": "Send GET request to /users"
+              },
+              {
+                "id": "step-2",
+                "name": "Verify status code 200"
+              },
+              {
+                "id": "step-3",
+                "name": "Verify response contains user array"
+              }
+            ]
+          },
+          {
+            "id": "test-2-2",
+            "name": "POST /users creates new user",
+            "steps": [
+              {
+                "id": "step-1",
+                "name": "Prepare user payload"
+              },
+              {
+                "id": "step-2",
+                "name": "Send POST request with auth header"
+              },
+              {
+                "id": "step-3",
+                "name": "Verify status code 201"
+              },
+              {
+                "id": "step-4",
+                "name": "Verify user ID in response"
+              }
+            ],
+            "notes": "Requires valid auth token"
+          }
+        ]
+      },
+      {
+        "id": "suite-3",
+        "name": "UI Component Tests",
+        "suites": [
+          {
+            "id": "suite-3-1",
+            "name": "Button Component",
+            "tests": [
+              {
+                "id": "test-3-1-1",
+                "name": "Button renders with correct text"
+              },
+              {
+                "id": "test-3-1-2",
+                "name": "Button click triggers handler"
+              },
+              {
+                "id": "test-3-1-3",
+                "name": "Button disabled state prevents clicks"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

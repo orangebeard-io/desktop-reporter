@@ -1,0 +1,221 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  version-and-tag:
+    name: Version and Tag
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+      should_release: ${{ steps.check_changes.outputs.should_release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          # Check if there are any commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            COMMITS_SINCE_TAG=$(git rev-list ${LAST_TAG}..HEAD --count)
+            if [ "$COMMITS_SINCE_TAG" -gt "0" ]; then
+              echo "should_release=true" >> $GITHUB_OUTPUT
+            else
+              echo "should_release=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Bump version
+        if: steps.check_changes.outputs.should_release == 'true'
+        id: bump_version
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Bump patch version
+          npm version patch -m "chore: bump version to %s [skip ci]"
+          
+          # Get new version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push changes
+        if: steps.check_changes.outputs.should_release == 'true'
+        run: |
+          git push origin ${{ github.ref_name }}
+          git push origin --tags
+
+  build-and-release:
+    name: Build ${{ matrix.os }}
+    needs: version-and-tag
+    if: needs.version-and-tag.outputs.should_release == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+          - os: macos-latest
+            platform: darwin
+            arch: universal
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: git pull origin ${{ github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application (Linux)
+        if: matrix.platform == 'linux'
+        run: npm run pack:linux
+
+      - name: Build application (Windows)
+        if: matrix.platform == 'win32'
+        run: npm run pack:win
+
+      - name: Build application (macOS)
+        if: matrix.platform == 'darwin'
+        run: npm run pack:mac
+
+      - name: Find build artifacts
+        id: find_artifacts
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          
+          # Find all zip, dmg, deb, rpm, AppImage files in out/make
+          if [ -d "out/make" ]; then
+            find out/make -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) -exec cp {} release-artifacts/ \;
+          fi
+          
+          # List what we found
+          ls -la release-artifacts/
+          
+          # Count artifacts
+          ARTIFACT_COUNT=$(ls -1 release-artifacts/ | wc -l)
+          echo "Found $ARTIFACT_COUNT artifacts"
+          echo "artifact_count=$ARTIFACT_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts
+        if: steps.find_artifacts.outputs.artifact_count > 0
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}-${{ matrix.arch }}
+          path: release-artifacts/*
+          retention-days: 1
+
+  create-release:
+    name: Create GitHub Release
+    needs: [version-and-tag, build-and-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: git pull origin ${{ github.ref_name }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R all-artifacts
+
+      - name: Prepare release assets
+        id: prepare_assets
+        run: |
+          mkdir -p release-files
+          find all-artifacts -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) -exec cp {} release-files/ \;
+          ls -la release-files/
+          
+          # Generate release notes
+          VERSION=${{ needs.version-and-tag.outputs.new_version }}
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          echo "# Release v${VERSION}" > release-notes.md
+          echo "" >> release-notes.md
+          
+          if [ -n "$LAST_TAG" ]; then
+            echo "## Changes since ${LAST_TAG}" >> release-notes.md
+            echo "" >> release-notes.md
+            git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" >> release-notes.md
+          else
+            echo "## Initial Release" >> release-notes.md
+          fi
+          
+          echo "" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## Downloads" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Windows" >> release-notes.md
+          echo "- Download the \`.zip\` file for Windows x64" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### macOS" >> release-notes.md
+          echo "- Download the \`.dmg\` file for macOS (Intel and Apple Silicon)" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Linux" >> release-notes.md
+          echo "- Download the \`.deb\` file for Debian/Ubuntu" >> release-notes.md
+          echo "- Download the \`.AppImage\` file for other distributions" >> release-notes.md
+          
+          cat release-notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version-and-tag.outputs.new_version }}
+          name: Release v${{ needs.version-and-tag.outputs.new_version }}
+          body_path: release-notes.md
+          files: release-files/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
