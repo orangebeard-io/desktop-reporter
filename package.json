@@ -1,7 +1,7 @@
 {
   "name": "orangebeard-desktop-reporter",
   "productName": "Orangebeard Desktop Reporter",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A desktop reporter application for Orangebeard built with Electron, React, and TypeScript",
   "main": ".vite/build/main.js",
   "author": "Orangebeard",
@@ -13,7 +13,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-"test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test",
     "export-schema": "tsx scripts/export-schema.ts",
     "pack:win": "electron-forge make --platform=win32",
     "pack:mac": "electron-forge make --platform=darwin",
