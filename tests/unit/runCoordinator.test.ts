@@ -174,14 +174,13 @@ describe('RunCoordinator', () => {
       'Test 1',
       'screenshot.png',
       fileContent,
-      'image/png',
-      'Screenshot of failure'
+      'image/png'
     );
 
     expect(mockClient.logToTest).toHaveBeenCalledWith(
       'run-uuid-123',
       'test-uuid-789',
-      'Screenshot of failure',
+      'screenshot.png',
       'INFO'
     );
     expect(mockClient.sendAttachment).toHaveBeenCalledWith(

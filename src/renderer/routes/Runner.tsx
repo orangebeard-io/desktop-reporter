@@ -15,7 +15,7 @@ import { Icon } from '@/components/Icon';
 
 export function Runner() {
   const navigate = useNavigate();
-  const { testSet, filePath, setTestSet, loadConfig, execution, startRun, addSuite, config } = useStore();
+  const { testSet, filePath, setTestSet, loadConfig, execution, startRun, addSuite, config, updateMetadata } = useStore();
   const [hideFinished, setHideFinished] = useState(false);
   const [showAddRootDialog, setShowAddRootDialog] = useState(false);
   const [rootSuiteName, setRootSuiteName] = useState('New Suite');
@@ -93,6 +93,7 @@ export function Runner() {
       const coordinator = getRunCoordinator(testSet);
       await coordinator.finishRun();
       resetCoordinator();
+      alert('Test run finished and reported in Orangebeard!');
     } catch (error) {
       alert(`Failed to finish run: ${error}`);
     }
@@ -226,11 +227,7 @@ export function Runner() {
                   <input
                     type="text"
                     value={testSet.metadata.organization}
-                    onChange={(e) => {
-                      const updated = { ...testSet };
-                      updated.metadata.organization = e.target.value;
-                      setTestSet(updated, filePath);
-                    }}
+                    onChange={(e) => updateMetadata({ organization: e.target.value })}
                     className="bg-transparent border border-input rounded px-2 py-1 text-foreground"
                     placeholder="organization"
                   />
@@ -240,11 +237,7 @@ export function Runner() {
                   <input
                     type="text"
                     value={testSet.metadata.project}
-                    onChange={(e) => {
-                      const updated = { ...testSet };
-                      updated.metadata.project = e.target.value;
-                      setTestSet(updated, filePath);
-                    }}
+                    onChange={(e) => updateMetadata({ project: e.target.value })}
                     className="bg-transparent border border-input rounded px-2 py-1 text-foreground"
                     placeholder="project"
                   />
@@ -254,11 +247,7 @@ export function Runner() {
                   <input
                     type="text"
                     value={testSet.metadata.testSetName}
-                    onChange={(e) => {
-                      const updated = { ...testSet };
-                      updated.metadata.testSetName = e.target.value;
-                      setTestSet(updated, filePath);
-                    }}
+                    onChange={(e) => updateMetadata({ testSetName: e.target.value })}
                     className="bg-transparent border border-input rounded px-2 py-1 text-foreground"
                     placeholder="test set name"
                   />
@@ -268,11 +257,7 @@ export function Runner() {
                   <input
                     type="text"
                     value={testSet.metadata.description || ''}
-                    onChange={(e) => {
-                      const updated = { ...testSet };
-                      updated.metadata.description = e.target.value;
-                      setTestSet(updated, filePath);
-                    }}
+                    onChange={(e) => updateMetadata({ description: e.target.value })}
                     className="bg-transparent border border-input rounded px-2 py-1 text-foreground"
                     placeholder="description (optional)"
                   />

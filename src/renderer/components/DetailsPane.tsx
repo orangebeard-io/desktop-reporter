@@ -9,7 +9,7 @@ import { mdiContentPaste, mdiFileImageOutline, mdiFileCheckOutline } from '@mdi/
 import { Icon } from './Icon';
 
 export function DetailsPane() {
-  const { testSet, selection, renameItem, updateTestNotes, updateStepNotes, execution, addSuite, addTest, addStep, deleteItem } = useStore();
+  const { testSet, selection, renameItem, updateTestNotes, updateStepNotes, execution, addSuite, addTest, addStep, deleteItem, setTestRemarks, setStepRemarks } = useStore();
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -133,8 +133,7 @@ export function DetailsPane() {
         step.name,
         fileName,
         content,
-        contentType,
-        notes || undefined
+        contentType
       );
     } else {
       // Attach to test
@@ -147,8 +146,7 @@ export function DetailsPane() {
         test.name,
         fileName,
         content,
-        contentType,
-        notes || undefined
+        contentType
       );
     }
 
@@ -282,6 +280,23 @@ export function DetailsPane() {
       {(selection.testId || (selection.stepPath && selection.stepPath.length > 0)) && execution.runId && (
         <>
           <div>
+            <div className="text-xs text-muted-foreground mb-1">Current Execution remarks</div>
+            <textarea
+              className="w-full h-24 border rounded-md p-2 text-sm bg-background"
+              value={(selection.stepPath && selection.stepPath.length > 0)
+                ? (execution.steps[`${selection.testId}:${selection.stepPath.join('.')}`]?.remarks || '')
+                : (execution.tests[selection.testId!]?.remarks || '')}
+              onChange={(e) => {
+                if (selection.stepPath && selection.stepPath.length > 0) {
+                  setStepRemarks(selection.testId!, selection.stepPath, e.target.value);
+                } else if (selection.testId) {
+                  setTestRemarks(selection.testId, e.target.value);
+                }
+              }}
+              placeholder="Add run-specific remarks here (markdown supported). Not saved to file."
+            />
+          </div>
+          <div>
             <div className="text-xs text-muted-foreground mb-1">Mark Status (requires active run)</div>
             <div className="flex gap-2">
               <Button size="sm" onClick={() => handleMarkStatus('PASSED')} className="bg-green-600 hover:bg-green-700">
@@ -363,10 +378,15 @@ export function DetailsPane() {
   async function handleMarkStatus(status: TestStatus) {
     if (!testSet || !selection || !selection.testId) return;
 
-    // Validate notes for failures
-    if (status === 'FAILED' && !notes.trim()) {
-      alert('Notes are required when marking as FAILED');
-      return;
+    // Require either notes or remarks for failures
+    if (status === 'FAILED') {
+      const remarks = selection.stepPath && selection.stepPath.length > 0
+        ? (execution.steps[`${selection.testId}:${selection.stepPath.join('.')}`]?.remarks || '')
+        : (selection.testId ? (execution.tests[selection.testId]?.remarks || '') : '');
+      if (!notes.trim() && !remarks.trim()) {
+        alert('Please add Notes or Current Execution remarks when marking as FAILED');
+        return;
+      }
     }
 
     try {

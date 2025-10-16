@@ -132,6 +132,7 @@ export interface ItemExecutionState {
   attachments: AttachmentInfo[];
   reported: boolean;
   testKey?: string; // Orangebeard-assigned key
+  remarks?: string; // ephemeral per-run remarks (not persisted)
 }
 
 export interface ExecutionState {

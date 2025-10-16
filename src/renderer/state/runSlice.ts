@@ -11,6 +11,9 @@ export interface RunSlice {
   setTestStatus: (testId: string, status: TestStatus, testKey?: string) => void;
   setStepStatus: (testId: string, stepPath: string[], status: TestStatus) => void;
   
+  setTestRemarks: (testId: string, remarks: string) => void;
+  setStepRemarks: (testId: string, stepPath: string[], remarks: string) => void;
+  
   addTestLog: (testId: string, log: string) => void;
   addStepLog: (testId: string, stepPath: string[], log: string) => void;
   
@@ -47,13 +50,8 @@ export const createRunSlice: StateCreator<RunSlice> = (set, get) => ({
   },
 
   finishRun: () => {
-    set((state) => ({
-      execution: {
-        ...state.execution,
-        runId: undefined,
-        runName: undefined,
-      },
-    }));
+    // Clear execution state completely to allow restart
+    set({ execution: createEmptyExecution() });
   },
 
   clearExecution: () => {
@@ -86,6 +84,37 @@ export const createRunSlice: StateCreator<RunSlice> = (set, get) => ({
           [key]: {
             ...(state.execution.steps[key] || { logs: [], attachments: [], reported: false }),
             status,
+          },
+        },
+      },
+    }));
+  },
+
+  setTestRemarks: (testId, remarks) => {
+    set((state) => ({
+      execution: {
+        ...state.execution,
+        tests: {
+          ...state.execution.tests,
+          [testId]: {
+            ...(state.execution.tests[testId] || { logs: [], attachments: [], reported: false }),
+            remarks,
+          },
+        },
+      },
+    }));
+  },
+
+  setStepRemarks: (testId, stepPath, remarks) => {
+    const key = makeStepKey(testId, stepPath);
+    set((state) => ({
+      execution: {
+        ...state.execution,
+        steps: {
+          ...state.execution.steps,
+          [key]: {
+            ...(state.execution.steps[key] || { logs: [], attachments: [], reported: false }),
+            remarks,
           },
         },
       },
