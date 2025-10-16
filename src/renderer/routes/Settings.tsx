@@ -25,6 +25,7 @@ export function Settings() {
     loadConfig();
   }, [loadConfig]);
 
+  // Initialize form from loaded config once, do not overwrite user input while editing
   useEffect(() => {
     if (config) {
       setFormData({
@@ -35,10 +36,12 @@ export function Settings() {
         proxyHost: config.proxy?.host || '',
         proxyPort: config.proxy?.port?.toString() || '',
         alwaysOnTop: config.alwaysOnTop || false,
-        theme: theme,
+        theme: (config.theme as ThemeMode) ?? theme,
       });
     }
-  }, [config, theme]);
+    // Only react to config changes to avoid clobbering while typing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   const handleSave = async () => {
     try {

@@ -15,7 +15,7 @@ import { Icon } from '@/components/Icon';
 
 export function Runner() {
   const navigate = useNavigate();
-  const { testSet, filePath, setTestSet, loadConfig, execution, startRun, addSuite } = useStore();
+  const { testSet, filePath, setTestSet, loadConfig, execution, startRun, addSuite, config } = useStore();
   const [hideFinished, setHideFinished] = useState(false);
   const [showAddRootDialog, setShowAddRootDialog] = useState(false);
   const [rootSuiteName, setRootSuiteName] = useState('New Suite');
@@ -65,6 +65,19 @@ export function Runner() {
   const handleStartRun = async () => {
     if (!testSet) return;
     try {
+      // Validate required fields before starting a run
+      const missing: string[] = [];
+      if (!config?.baseUrl?.trim()) missing.push('Base URL');
+      if (!config?.listenerToken?.trim()) missing.push('Listener Token');
+      const meta = testSet.metadata;
+      if (!meta.organization?.trim()) missing.push('Organization');
+      if (!meta.project?.trim()) missing.push('Project');
+      if (!meta.testSetName?.trim()) missing.push('Test Set Name');
+      if (missing.length > 0) {
+        alert(`Cannot start run. Please provide the following:\n- ${missing.join('\n- ')}`);
+        return;
+      }
+
       const coordinator = getRunCoordinator(testSet);
       const result = await coordinator.startRunIfNeeded();
       const runName = testSet.metadata.testSetName;
@@ -163,7 +176,7 @@ export function Runner() {
         <Button size="sm" variant="outline" onClick={handleOpen}>
           Open
         </Button>
-        <Button size="sm" variant="outline" onClick={handleSave} disabled={!testSet} className="dark:border-orangebeard-dark-green dark:text-orangebeard-dark-green dark:hover:bg-orangebeard-dark-green dark:hover:text-white">
+        <Button size="sm" variant="outline" onClick={handleSave} disabled={!testSet}>
           Save
         </Button>
         <Button size="sm" variant="outline" onClick={handleSaveAs} disabled={!testSet}>

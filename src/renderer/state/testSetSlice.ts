@@ -9,6 +9,7 @@ export interface TestSetSlice {
   
   setTestSet: (testSet: OBTestSet, filePath: string | null) => void;
   updateTestSet: (testSet: OBTestSet) => void;
+  updateMetadata: (updates: Partial<OBTestSet['metadata']>) => void;
   clearTestSet: () => void;
   
   setSelection: (selection: SelectionPath | null) => void;
@@ -42,6 +43,17 @@ export const createTestSetSlice: StateCreator<TestSetSlice> = (set, get) => ({
 
   updateTestSet: (testSet) => {
     set({ testSet });
+  },
+
+  updateMetadata: (updates) => {
+    const { testSet } = get();
+    if (!testSet) return;
+    set({ 
+      testSet: { 
+        ...testSet, 
+        metadata: { ...testSet.metadata, ...updates } 
+      } 
+    });
   },
 
   clearTestSet: () => {

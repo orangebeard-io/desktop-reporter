@@ -111,7 +111,8 @@ export const AppConfigSchema = z.object({
     .nullable()
     .optional(),
   alwaysOnTop: z.boolean().default(false),
-  listenerToken: z.string().uuid(),
+  // Allow saving incomplete config: token may be empty string until a run starts
+  listenerToken: z.union([z.string().uuid(), z.literal('')]).default(''),
   theme: z.enum(['system', 'light', 'dark']).default('system'),
 });
 
