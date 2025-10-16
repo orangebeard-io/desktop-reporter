@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Titlebar } from '@/components/Titlebar';
+import { Toaster } from '@/components/ui/toast';
 import { Runner } from '@/routes/Runner';
 import { Settings } from '@/routes/Settings';
 import { useStore } from '@/state/store';
@@ -25,15 +26,17 @@ export default function App() {
 
   return (
     <HashRouter>
-      <div className="h-screen flex flex-col bg-background">
-        <Titlebar />
-        <div className="flex-1 overflow-auto">
-          <Routes>
-            <Route path="/" element={<Runner />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
+      <Toaster>
+        <div className="h-screen flex flex-col bg-background">
+          <Titlebar />
+          <div className="flex-1 overflow-auto -webkit-app-region-no-drag">
+            <Routes>
+              <Route path="/" element={<Runner />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </div>
         </div>
-      </div>
+      </Toaster>
     </HashRouter>
   );
 }

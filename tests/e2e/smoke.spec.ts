@@ -98,4 +98,43 @@ test.describe('Orangebeard Desktop Reporter - Smoke Test', () => {
     // In a real scenario, you'd mock the config or handle the error
     await expect(startButton).toBeVisible();
   });
+
+  test('can add suite/test/step with custom names after saving configuration', async () => {
+    // Navigate to Settings and save configuration
+    await window.click('button[aria-label="Settings"]');
+    await expect(window.locator('h1:has-text("Settings")')).toBeVisible();
+    await window.click('button:has-text("Save Configuration")');
+
+    // Back on Runner
+    await expect(window.locator('input[placeholder="organization"]')).toBeVisible();
+
+    // Add Root Suite with custom name
+    await window.click('button:has-text("+ Suite")');
+    const addSuiteDlg = window.locator('text="Add Root Suite"');
+    await expect(addSuiteDlg).toBeVisible();
+    await window.fill('input[placeholder="Enter suite name"]', 'Custom Suite A');
+    await window.click('button:has-text("Add"):not([disabled])');
+    await expect(addSuiteDlg).not.toBeVisible();
+    await expect(window.locator('text=/📁.*Custom Suite A/')).toBeVisible();
+
+    // Select the suite
+    await window.click('text=/📁.*Custom Suite A/');
+
+    // Add Test with custom name
+    await window.click('button:has-text("Add Test")');
+    await window.fill('input[placeholder="Enter test name"]', 'Custom Test B');
+    await window.click('button:has-text("Add"):not([disabled])');
+    await expect(window.locator('text=/🧪.*Custom Test B/')).toBeVisible();
+
+    // Select the test
+    await window.click('text=/🧪.*Custom Test B/');
+
+    // Add Step with custom name
+    await window.click('button:has-text("Add Step")');
+    await window.fill('input[placeholder="Enter step name"]', 'Custom Step C');
+    await window.click('button:has-text("Add"):not([disabled])');
+
+    // Verify step exists
+    await expect(window.locator('text=Custom Step C')).toBeVisible();
+  });
 });

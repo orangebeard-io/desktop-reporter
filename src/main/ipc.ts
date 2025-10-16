@@ -33,13 +33,24 @@ export function registerIPCHandlers() {
   });
 
   ipcMain.handle('config:save', async (_event, config) => {
-    const validated = AppConfigSchema.parse(config);
+    const result = AppConfigSchema.safeParse(config);
+    if (!result.success) {
+      const listenerIssue = result.error.issues.find((i) => i.path?.includes('listenerToken'));
+      if (listenerIssue) {
+        throw new Error('Invalid Listener Token. Please enter a valid UUID.');
+      }
+      throw new Error(result.error.message);
+    }
+
+    const validated = result.data;
     saveConfig(validated);
     
-    // Update always-on-top
+    // Update always-on-top only if it changed to avoid focus quirks
     const win = getMainWindow();
     if (win) {
-      win.setAlwaysOnTop(validated.alwaysOnTop);
+      if (win.isAlwaysOnTop() !== !!validated.alwaysOnTop) {
+        win.setAlwaysOnTop(!!validated.alwaysOnTop);
+      }
     }
     
     // Update proxy
@@ -50,6 +61,11 @@ export function registerIPCHandlers() {
       });
     } else {
       await session.defaultSession.setProxy({});
+    }
+
+    // Ensure window regains focus after settings save
+    if (win) {
+      win.focus();
     }
     
     return true;

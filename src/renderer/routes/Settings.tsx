@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { AppConfig, ThemeMode } from '../../domain/models';
+import { useToast } from '@/components/ui/toast';
 
 export function Settings() {
   const navigate = useNavigate();
   const { config, loadConfig, saveConfig, theme, setTheme } = useStore();
+  const { show } = useToast();
 
   const [formData, setFormData] = useState({
     baseUrl: 'https://app.orangebeard.io',
@@ -60,15 +62,19 @@ export function Settings() {
 
       await saveConfig(newConfig);
       setTheme(formData.theme);
-      alert('Configuration saved successfully!');
+      // Navigate back to home without blocking alert dialogs to avoid focus issues
       navigate('/');
+      show({ title: 'Configuration saved!', description: '', variant: 'success' });
     } catch (error) {
-      alert(`Failed to save configuration: ${error}`);
+      // Show non-blocking toast for validation or save errors
+      const msg = String(error instanceof Error ? error.message : error);
+      show({ title: 'Failed to save configuration', description: msg, variant: 'error' });
+      console.error('Failed to save configuration:', error);
     }
   };
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-6 max-w-2xl -webkit-app-region-no-drag">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground">Configure your Orangebeard connection</p>
