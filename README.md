@@ -2,6 +2,8 @@
 
 A production-grade desktop reporter application for Orangebeard built with **Electron 32**, **React 18**, and **TypeScript**.
 
+Docs: https://docs.orangebeard.io/connecting-test-tools/desktop-reporter/
+
 ## Stack
 
 - **Electron 32** + **Electron Forge** - Desktop application framework
