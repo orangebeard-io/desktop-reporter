@@ -28,7 +28,7 @@ export function getRunCoordinator(testSet: OBTestSet): RunCoordinator {
     testSet.metadata.organization
   );
 
-  coordinatorInstance = createRunCoordinator(client, store as AppStore, testSet);
+  coordinatorInstance = createRunCoordinator(client, () => useStore.getState() as AppStore, testSet);
 
   return coordinatorInstance;
 }

@@ -19,7 +19,7 @@ export class RunCoordinator {
 
   constructor(
     private client: OBClientAdapter,
-    private store: AppStore,
+    private getStore: () => AppStore,
     private testSet: OBTestSet
   ) {}
 
@@ -34,7 +34,7 @@ export class RunCoordinator {
     const result = await this.client.startRun(runName, description);
 
     this.runId = result.runId;
-    this.store.startRun(result.runId as string, runName);
+    this.getStore().startRun(result.runId as string, runName);
 
     return result.runId;
   }
@@ -91,7 +91,7 @@ export class RunCoordinator {
       const testUUID = await this.client.startTest(runId, suiteUUID, testName);
       this.testUUIDs.set(testId, testUUID);
       this.reportedTests.add(testId);
-      this.store.markTestReported(testId, testUUID as string);
+      this.getStore().markTestReported(testId, testUUID as string);
     }
 
     const testUUID = this.testUUIDs.get(testId)!;
@@ -105,8 +105,15 @@ export class RunCoordinator {
       await this.client.logToTest(runId, testUUID, notes, logLevel);
     }
 
+    // Log current execution remarks if provided
+    const remarks = this.getStore().execution.tests[testId]?.remarks;
+    if (remarks && remarks.trim()) {
+      const logLevel = status === 'FAILED' ? 'ERROR' : 'INFO';
+      await this.client.logToTest(runId, testUUID, remarks, logLevel);
+    }
+
     // Update status
-    this.store.setTestStatus(testId, status, testUUID as string);
+    this.getStore().setTestStatus(testId, status, testUUID as string);
 
     // Finish test
     await this.client.finishTest(runId, testUUID, status);
@@ -121,8 +128,7 @@ export class RunCoordinator {
     testName: string,
     fileName: string,
     content: ArrayBuffer,
-    contentType: string,
-    notes?: string
+    contentType: string
   ): Promise<void> {
     const runId = await this.startRunIfNeeded();
 
@@ -134,14 +140,13 @@ export class RunCoordinator {
       const testUUID = await this.client.startTest(runId, suiteUUID, testName);
       this.testUUIDs.set(testId, testUUID);
       this.reportedTests.add(testId);
-      this.store.markTestReported(testId, testUUID as string);
+      this.getStore().markTestReported(testId, testUUID as string);
     }
 
     const testUUID = this.testUUIDs.get(testId)!;
 
-    // Create log for attachment
-    const logMessage = notes || fileName;
-    const logUUID = await this.client.logToTest(runId, testUUID, logMessage, 'INFO');
+    // Create log for attachment (do not include notes/remarks to avoid duplication)
+    const logUUID = await this.client.logToTest(runId, testUUID, fileName, 'INFO');
 
     // Send attachment
     await this.client.sendAttachment(runId, testUUID, logUUID, undefined, fileName, content, contentType);
@@ -169,7 +174,7 @@ export class RunCoordinator {
       const testUUID = await this.client.startTest(runId, suiteUUID, testName);
       this.testUUIDs.set(testId, testUUID);
       this.reportedTests.add(testId);
-      this.store.markTestReported(testId, testUUID as string);
+      this.getStore().markTestReported(testId, testUUID as string);
     }
 
     const testUUID = this.testUUIDs.get(testId)!;
@@ -202,12 +207,19 @@ export class RunCoordinator {
       await this.client.logToStep(runId, testUUID, stepUUID, notes, logLevel);
     }
 
+    // Log current execution remarks if provided
+    const remarks = this.getStore().execution.steps[`${testId}:${stepPath.join('.')}`]?.remarks;
+    if (remarks && remarks.trim()) {
+      const logLevel = status === 'FAILED' ? 'ERROR' : 'INFO';
+      await this.client.logToStep(runId, testUUID, stepUUID, remarks, logLevel);
+    }
+
     // Finish step
     await this.client.finishStep(runId, stepUUID, status);
 
     this.reportedSteps.add(stepKey);
-    this.store.setStepStatus(testId, stepPath, status);
-    this.store.markStepReported(testId, stepPath);
+    this.getStore().setStepStatus(testId, stepPath, status);
+    this.getStore().markStepReported(testId, stepPath);
   }
 
   /**
@@ -221,8 +233,7 @@ export class RunCoordinator {
     stepName: string,
     fileName: string,
     content: ArrayBuffer,
-    contentType: string,
-    notes?: string
+    contentType: string
   ): Promise<void> {
     const runId = await this.startRunIfNeeded();
 
@@ -234,7 +245,7 @@ export class RunCoordinator {
       const testUUID = await this.client.startTest(runId, suiteUUID, testName);
       this.testUUIDs.set(testId, testUUID);
       this.reportedTests.add(testId);
-      this.store.markTestReported(testId, testUUID as string);
+      this.getStore().markTestReported(testId, testUUID as string);
     }
 
     const testUUID = this.testUUIDs.get(testId)!;
@@ -258,9 +269,8 @@ export class RunCoordinator {
 
     const stepUUID = this.stepUUIDs.get(stepKey)!;
 
-    // Create log for attachment
-    const logMessage = notes || fileName;
-    const logUUID = await this.client.logToStep(runId, testUUID, stepUUID, logMessage, 'INFO');
+    // Create log for attachment (do not include notes/remarks to avoid duplication)
+    const logUUID = await this.client.logToStep(runId, testUUID, stepUUID, fileName, 'INFO');
 
     // Send attachment
     await this.client.sendAttachment(runId, testUUID, logUUID, stepUUID, fileName, content, contentType);
@@ -276,7 +286,7 @@ export class RunCoordinator {
     await this.markUnreportedTestsAsSkipped(this.runId, this.testSet.structure.suites);
 
     await this.client.finishRun(this.runId);
-    this.store.finishRun();
+    this.getStore().finishRun();
 
     // Reset state
     this.runId = null;
@@ -358,8 +368,8 @@ export class RunCoordinator {
           this.stepUUIDs.set(stepKey, stepUUID);
           await this.client.finishStep(runId, stepUUID, 'SKIPPED');
           this.reportedSteps.add(stepKey);
-          this.store.setStepStatus(testId, stepPath, 'SKIPPED');
-          this.store.markStepReported(testId, stepPath);
+          this.getStore().setStepStatus(testId, stepPath, 'SKIPPED');
+          this.getStore().markStepReported(testId, stepPath);
         } catch (error) {
           console.error('Failed to skip step:', error);
         }
@@ -403,8 +413,8 @@ export class RunCoordinator {
 
 export function createRunCoordinator(
   client: OBClientAdapter,
-  store: AppStore,
+  getStore: () => AppStore,
   testSet: OBTestSet
 ): RunCoordinator {
-  return new RunCoordinator(client, store, testSet);
+  return new RunCoordinator(client, getStore, testSet);
 }
