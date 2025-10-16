@@ -13,7 +13,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:e2e": "playwright test",
+"test:e2e": "npm run build && playwright test",
     "export-schema": "tsx scripts/export-schema.ts",
     "pack:win": "electron-forge make --platform=win32",
     "pack:mac": "electron-forge make --platform=darwin",

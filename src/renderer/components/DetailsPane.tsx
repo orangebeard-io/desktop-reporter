@@ -7,9 +7,23 @@ import type { TestStatus } from '../../domain/models';
 import { getRunCoordinator } from '@/lib/useRunCoordinator';
 import { mdiContentPaste, mdiFileImageOutline, mdiFileCheckOutline } from '@mdi/js';
 import { Icon } from './Icon';
+import { useToast } from '@/components/ui/toast';
 
 export function DetailsPane() {
-  const { testSet, selection, renameItem, updateTestNotes, updateStepNotes, execution, addSuite, addTest, addStep, deleteItem, setTestRemarks, setStepRemarks } = useStore();
+  const { show } = useToast();
+  // Select only what this component needs to avoid re-renders on unrelated store updates
+  const testSet = useStore((s) => s.testSet);
+  const selection = useStore((s) => s.selection);
+  const execution = useStore((s) => s.execution);
+  const renameItem = useStore((s) => s.renameItem);
+  const updateTestNotes = useStore((s) => s.updateTestNotes);
+  const updateStepNotes = useStore((s) => s.updateStepNotes);
+  const addSuite = useStore((s) => s.addSuite);
+  const addTest = useStore((s) => s.addTest);
+  const addStep = useStore((s) => s.addStep);
+  const deleteItem = useStore((s) => s.deleteItem);
+  const setTestRemarks = useStore((s) => s.setTestRemarks);
+  const setStepRemarks = useStore((s) => s.setStepRemarks);
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -25,6 +39,18 @@ export function DetailsPane() {
     return resolveSelected(testSet.structure.suites, selection);
   }, [testSet, selection]);
 
+  // Only initialize name/notes when the selection changes, not on every store update
+  const selectedKey = useMemo(() => {
+    if (!selection) return 'none';
+    if (selection.testId) {
+      if (selection.stepPath && selection.stepPath.length > 0) {
+        return `step:${selection.testId}:${selection.stepPath.join('.')}`;
+        }
+      return `test:${selection.testId}`;
+    }
+    return `suite:${selection.suiteIds[selection.suiteIds.length - 1]}`;
+  }, [selection]);
+
   useEffect(() => {
     if (!item) {
       setName('');
@@ -33,7 +59,8 @@ export function DetailsPane() {
     }
     setName(item.name ?? '');
     setNotes(item.notes ?? '');
-  }, [item]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey]);
 
   // Auto-save notes with debouncing
   useEffect(() => {
@@ -79,7 +106,7 @@ export function DetailsPane() {
     if (!file) return;
 
     if (file.size > 32 * 1024 * 1024) {
-      alert('File size must be less than 32MB');
+      show({ title: 'Attachment too large', description: 'File size must be less than 32MB', variant: 'warning' });
       return;
     }
 
@@ -87,7 +114,7 @@ export function DetailsPane() {
       const arrayBuffer = await file.arrayBuffer();
       await sendAttachment(file.name, arrayBuffer, file.type);
     } catch (error) {
-      alert(`Failed to attach file: ${error}`);
+      show({ title: 'Failed to attach file', description: String(error), variant: 'error' });
     } finally {
       // Reset file input
       if (fileInputRef.current) {
@@ -100,7 +127,7 @@ export function DetailsPane() {
     try {
       const imageData = await window.api.clipboard.readImage();
       if (!imageData) {
-        alert('No image found in clipboard');
+        show({ title: 'No image found in clipboard', variant: 'warning' });
         return;
       }
 
@@ -109,7 +136,7 @@ export function DetailsPane() {
 
       await sendAttachment('pasted-image.png', arrayBuffer, 'image/png');
     } catch (error) {
-      alert(`Failed to paste image: ${error}`);
+      show({ title: 'Failed to paste image', description: String(error), variant: 'error' });
     }
   };
 
@@ -213,7 +240,7 @@ export function DetailsPane() {
     <>
       {/* Image Preview Modal */}
       {showImagePreview && previewImage && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={() => setShowImagePreview(false)}>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 -webkit-app-region-no-drag" onClick={() => setShowImagePreview(false)}>
           <div className="max-w-4xl max-h-[90vh] overflow-auto">
             <img src={previewImage} alt="Preview" className="w-full h-auto" />
           </div>
@@ -222,7 +249,7 @@ export function DetailsPane() {
 
       {/* Add Item Dialog */}
       {showAddDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 -webkit-app-region-no-drag">
           <div className="bg-background border rounded-lg p-4 w-96">
             <h3 className="text-lg font-semibold mb-3">Add {addDialogType}</h3>
             <Input
@@ -384,7 +411,7 @@ export function DetailsPane() {
         ? (execution.steps[`${selection.testId}:${selection.stepPath.join('.')}`]?.remarks || '')
         : (selection.testId ? (execution.tests[selection.testId]?.remarks || '') : '');
       if (!notes.trim() && !remarks.trim()) {
-        alert('Please add Notes or Current Execution remarks when marking as FAILED');
+        show({ title: 'Notes or remarks required', description: 'Please add Notes or Current Execution remarks when marking as FAILED', variant: 'warning' });
         return;
       }
     }
@@ -417,7 +444,7 @@ export function DetailsPane() {
         if ((status === 'PASSED' || status === 'SKIPPED') && execution.tests[selection.testId]?.reported) {
           const hasFailedSteps = useStore.getState().hasFailedSteps(selection.testId);
           if (hasFailedSteps) {
-            alert('Cannot mark test as PASSED or SKIPPED when it has failed steps');
+            show({ title: 'Action blocked', description: 'Cannot mark test as PASSED or SKIPPED when it has failed steps', variant: 'warning' });
             return;
           }
         }
@@ -432,7 +459,7 @@ export function DetailsPane() {
       }
 
     } catch (error) {
-      alert(`Failed to mark status: ${error}`);
+      show({ title: 'Failed to mark status', description: String(error), variant: 'error' });
     }
   }
 }

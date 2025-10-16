@@ -12,9 +12,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { mdiCogOutline } from '@mdi/js';
 import { Icon } from '@/components/Icon';
+import { useToast } from '@/components/ui/toast';
 
 export function Runner() {
   const navigate = useNavigate();
+  const { show } = useToast();
   const { testSet, filePath, setTestSet, loadConfig, execution, startRun, addSuite, config, updateMetadata } = useStore();
   const [hideFinished, setHideFinished] = useState(false);
   const [showAddRootDialog, setShowAddRootDialog] = useState(false);
@@ -33,7 +35,7 @@ export function Runner() {
         setTestSet(result.testSet, result.filePath);
       }
     } catch (error) {
-      alert(`Failed to open test set: ${error}`);
+      show({ title: 'Open failed', description: String(error), variant: 'error' });
     }
   };
 
@@ -48,7 +50,7 @@ export function Runner() {
       const savedPath = await saveTestSetFile(testSet, filePath || undefined);
       setTestSet(testSet, savedPath);
     } catch (error) {
-      alert(`Failed to save test set: ${error}`);
+      show({ title: 'Save failed', description: String(error), variant: 'error' });
     }
   };
 
@@ -58,7 +60,7 @@ export function Runner() {
       const savedPath = await saveTestSetFile(testSet);
       setTestSet(testSet, savedPath);
     } catch (error) {
-      alert(`Failed to save test set: ${error}`);
+      show({ title: 'Save failed', description: String(error), variant: 'error' });
     }
   };
 
@@ -74,7 +76,7 @@ export function Runner() {
       if (!meta.project?.trim()) missing.push('Project');
       if (!meta.testSetName?.trim()) missing.push('Test Set Name');
       if (missing.length > 0) {
-        alert(`Cannot start run. Please provide the following:\n- ${missing.join('\n- ')}`);
+        show({ title: 'Cannot start run', description: `Please provide the following:\n- ${missing.join('\n- ')}` , variant: 'warning' });
         return;
       }
 
@@ -83,7 +85,7 @@ export function Runner() {
       const runName = testSet.metadata.testSetName;
       startRun(result as string, runName);
     } catch (error) {
-      alert(`Failed to start run: ${error}`);
+      show({ title: 'Failed to start run', description: String(error), variant: 'error' });
     }
   };
 
@@ -93,9 +95,9 @@ export function Runner() {
       const coordinator = getRunCoordinator(testSet);
       await coordinator.finishRun();
       resetCoordinator();
-      alert('Test run finished and reported in Orangebeard!');
+      show({ title: 'Run finished', description: 'Test run reported in Orangebeard!', variant: 'success' });
     } catch (error) {
-      alert(`Failed to finish run: ${error}`);
+      show({ title: 'Failed to finish run', description: String(error), variant: 'error' });
     }
   };
 
@@ -143,7 +145,7 @@ export function Runner() {
     <>
       {/* Add Root Suite Dialog */}
       {showAddRootDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 -webkit-app-region-no-drag">
           <div className="bg-background border rounded-lg p-4 w-96">
             <h3 className="text-lg font-semibold mb-3">Add Root Suite</h3>
             <Input
@@ -170,7 +172,7 @@ export function Runner() {
 
     <div className="flex flex-col h-full">
       {/* Top toolbar */}
-      <div className="bg-card border-b px-4 py-2 flex items-center gap-2 flex-shrink-0">
+      <div className="bg-card border-b px-4 py-2 flex items-center gap-2 flex-shrink-0 -webkit-app-region-no-drag">
         <Button size="sm" variant="outline" onClick={handleNew}>
           New
         </Button>
@@ -199,13 +201,13 @@ export function Runner() {
         <Button size="sm" variant="destructive" onClick={handleFinishRun} disabled={!execution.runId} className="dark:bg-orangebeard-dark-green dark:hover:bg-orangebeard-dark-green/90">
           Finish Run
         </Button>
-        <Button size="sm" variant="outline" onClick={() => navigate('/settings')} className="flex items-center gap-1">
+        <Button size="sm" variant="outline" onClick={() => navigate('/settings')} className="flex items-center gap-1" aria-label="Settings" title="Settings">
           <Icon path={mdiCogOutline} size={16} />
         </Button>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden -webkit-app-region-no-drag">
         {!testSet ? (
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold text-orangebeard-orange">Get Started</h2>
@@ -297,7 +299,7 @@ export function Runner() {
         )}
       </div>
       {/* Bottom status */}
-      <div className="border-t px-4 py-2 bg-card flex-shrink-0">
+      <div className="border-t px-4 py-2 bg-card flex-shrink-0 -webkit-app-region-no-drag">
         <RunStatus />
       </div>
     </div>
